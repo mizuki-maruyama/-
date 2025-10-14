@@ -1,0 +1,559 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>VarKeeper — 変数電卓</title>
+  <meta name="theme-color" content="#ffffff">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="apple-touch-icon" href="icon-192.png">
+  <style>
+    :root { --bg:#f6f7fb; --panel:#fff; --ink:#111; --ink-weak:#6b7280; --border:#e5e7eb;
+            --accent:#2563eb; --accent-ink:#fff; --warn:#ef4444; --radius:16px; }
+    * { box-sizing: border-box; }
+    html, body { margin:0; padding:0; background:var(--bg); color:var(--ink);
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Hiragino Sans", "Noto Sans CJK JP", "Noto Sans JP", "Yu Gothic UI", "Meiryo", sans-serif; }
+    header { position:sticky; top:0; z-index:10; background:var(--panel);
+      border-bottom:1px solid var(--border); padding:12px 14px; display:flex; gap:10px; align-items:center; justify-content:space-between; }
+    header h1 { font-size:18px; margin:0; font-weight:800; letter-spacing:.2px; }
+    .h-actions { display:flex; gap:6px; align-items:center; }
+    .btn { border-radius:12px; border:1px solid var(--border); padding:10px 12px; background:#fff; font-weight:700; cursor:pointer; }
+    .btn.sm { padding:8px 10px; font-size:13px; }
+    .btn.primary { background:var(--accent); border-color:var(--accent); color:var(--accent-ink); }
+    main { max-width:520px; margin:0 auto; padding:12px 14px 120px; }
+    .display { background:var(--panel); border:1px solid var(--border); border-radius:var(--radius);
+               padding:16px; display:grid; gap:10px; }
+    .expr { font-size:22px; min-height:34px; line-height:1.3; word-break:break-all; }
+    .result { font-size:28px; font-weight:800; text-align:right; }
+    .muted { color:var(--ink-weak); }
+    .vars { margin-top:12px; background:var(--panel); border:1px solid var(--border); border-radius:var(--radius);
+            padding:8px; display:flex; gap:8px; overflow-x:auto; -webkit-overflow-scrolling: touch; align-items:center; }
+    .inserter { display:flex; align-items:center; gap:8px; padding:8px 10px; border-radius:999px;
+                border:1px dashed #c7d2fe; background:#eef2ff; color:#1d4ed8; flex:0 0 auto; }
+    .inserter .save { display:inline-flex; align-items:center; justify-content:center; width:30px; height:30px;
+                      border-radius:999px; border:1px solid #93c5fd; background:#dbeafe; color:#1e40af; font-weight:900; cursor:pointer; }
+    .inserter .save:active { transform: translateY(1px); }
+    .inserter .label { font-weight:800; margin-left:2px; }
+    .inserter input { border:0; outline:none; background:transparent; min-width:160px; max-width:160px;
+                      font-size:16px; font-weight:700; color:#1d4ed8; }
+    .chip { flex:0 0 auto; display:inline-flex; align-items:center; gap:6px;
+            padding:8px 10px; background:#f1f5f9; color:#0f172a; border:1px solid #e2e8f0;
+            border-radius:999px; font-weight:700; cursor:pointer; }
+    .chip small { color:#64748b; font-weight:600; margin-left:4px; }
+    .chip .del { margin-left:6px; border:0; background:#fee2e2; color:#b91c1c; border-radius:999px; padding:0 8px; font-weight:800; cursor:pointer; }
+    .grid { margin-top:12px; display:grid; grid-template-columns: repeat(4, 1fr); gap:10px; }
+    .key { padding:16px 10px; font-size:20px; text-align:center; background:var(--panel);
+           border:1px solid var(--border); border-radius:16px; font-weight:800; }
+    .key.op { color:#1d4ed8; }
+    .key.equals { background:#1d4ed8; color:#fff; }
+    .key.ac { color:#ef4444; }
+    .toolbar { margin-top:10px; display:flex; justify-content:space-between; align-items:center; }
+    .pill { display:inline-flex; align-items:center; gap:6px; padding:4px 10px; border:1px solid var(--border); border-radius:999px; background:#f8fafc; font-size:12px; }
+    dialog { border:none; border-radius:16px; padding:0; width:min(520px, 94vw); box-shadow:0 24px 70px rgba(0,0,0,.18); }
+    .modal { padding:16px; }
+    .modal header { padding-bottom:6px; }
+    .modal footer { display:flex; justify-content:end; gap:8px; padding-top:12px; }
+    label { font-size:12px; color:var(--ink-weak); display:block; margin-bottom:6px; }
+    input[type="text"] { width:100%; padding:12px; border-radius:12px; border:1px solid var(--border); font-size:16px; }
+    .row { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+    .danger { color:#b91c1c; }
+    .hint-list { margin: 8px 0 0 1.2em; padding:0; }
+    .hint-list li { margin:4px 0; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>VarKeeper</h1>
+    <div class="h-actions">
+      <span class="pill">スロット <b id="slots-used">0</b>/<b id="slots-max">10</b></span>
+      <button class="btn sm" id="btn-manage">管理</button>
+      <button class="btn sm" id="btn-export">書き出し</button>
+      <label class="btn sm" for="file-import">読み込み</label>
+      <input id="file-import" type="file" accept="application/json" style="display:none">
+    </div>
+  </header>
+
+  <main id="main">
+    <section class="display">
+      <div class="expr muted" id="expr">0</div>
+      <div class="result" id="result">—</div>
+    </section>
+
+    <section class="vars" id="vars">
+      <div class="inserter" id="inserter">
+        <button id="btn-inline-save" class="save" title="今の式をこの名前で保存">＋</button>
+        <span class="label">変数</span>
+        <input id="var-insert" type="text" placeholder="変数名を入力" inputmode="text" autocomplete="off">
+      </div>
+      <!-- chips will follow -->
+    </section>
+
+    <section class="grid">
+      <button class="key ac" data-k="AC">AC</button>
+      <button class="key" data-k="(">(</button>
+      <button class="key" data-k=")">)</button>
+      <button class="key" data-k="DEL">⌫</button>
+
+      <button class="key" data-k="7">7</button>
+      <button class="key" data-k="8">8</button>
+      <button class="key" data-k="9">9</button>
+      <button class="key op" data-k="÷">÷</button>
+
+      <button class="key" data-k="4">4</button>
+      <button class="key" data-k="5">5</button>
+      <button class="key" data-k="6">6</button>
+      <button class="key op" data-k="×">×</button>
+
+      <button class="key" data-k="1">1</button>
+      <button class="key" data-k="2">2</button>
+      <button class="key" data-k="3">3</button>
+      <button class="key op" data-k="-">−</button>
+
+      <button class="key" data-k="0">0</button>
+      <button class="key" data-k=".">.</button>
+      <button class="key equals" data-k="=">＝</button>
+      <button class="key op" data-k="+">＋</button>
+    </section>
+
+    <div class="toolbar">
+      <span class="muted" style="font-size:12px"></span>
+    </div>
+  </main>
+
+  <!-- Variable Modal (manage existing) -->
+  <dialog id="var-dialog">
+    <div class="modal">
+      <header><h3 style="margin:0">変数の編集</h3></header>
+      <div class="row">
+        <div>
+          <label>変数名</label>
+          <input id="var-name" type="text" placeholder="例: 光熱費">
+        </div>
+        <div>
+          <label>値（式OK）</label>
+          <input id="var-value" type="text" placeholder="例: 1000*2+5(2+30)">
+        </div>
+      </div>
+      <footer>
+        <button class="btn" id="var-cancel">キャンセル</button>
+        <button class="btn primary" id="var-save">保存</button>
+      </footer>
+    </div>
+  </dialog>
+
+  <!-- Manage Modal -->
+  <dialog id="manage-dialog">
+    <div class="modal">
+      <header><h3 style="margin:0">変数の管理</h3></header>
+      <div id="manage-list" class="muted" style="max-height:50vh; overflow:auto;"></div>
+      <footer>
+        <button class="btn" id="manage-close">閉じる</button>
+      </footer>
+    </div>
+  </dialog>
+
+  <!-- Error Modal -->
+  <dialog id="error-dialog">
+    <div class="modal">
+      <header><h3 style="margin:0" class="danger">計算できません！</h3></header>
+      <div id="error-msg" class="muted" style="margin-top:6px"></div>
+      <ul id="error-hints" class="hint-list"></ul>
+      <footer>
+        <button class="btn primary" id="error-ok">OK</button>
+      </footer>
+    </div>
+  </dialog>
+
+  <!-- Confirm Modal -->
+  <dialog id="confirm-dialog">
+    <div class="modal">
+      <header><h3 id="confirm-title" style="margin:0">確認</h3></header>
+      <div id="confirm-message" class="muted" style="margin-top:6px"></div>
+      <footer>
+        <button class="btn" id="confirm-cancel">キャンセル</button>
+        <button class="btn primary" id="confirm-ok">OK</button>
+      </footer>
+    </div>
+  </dialog>
+
+  <script>
+    // --- Storage ---
+    const STORAGE_KEY = "varkeep:data:v10";
+    const DEFAULT_SLOTS = 10;
+    function loadAll() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (!raw) return { items: {}, meta: { createdAt: Date.now(), updatedAt: Date.now(), slots: DEFAULT_SLOTS } };
+        const db = JSON.parse(raw);
+        if (!db.meta) db.meta = { createdAt: Date.now(), updatedAt: Date.now(), slots: DEFAULT_SLOTS };
+        if (typeof db.meta.slots !== "number") db.meta.slots = DEFAULT_SLOTS;
+        return db;
+      } catch (e) {
+        return { items: {}, meta: { createdAt: Date.now(), updatedAt: Date.now(), slots: DEFAULT_SLOTS } };
+      }
+    }
+    function saveAll(db){ db.meta.updatedAt = Date.now(); localStorage.setItem(STORAGE_KEY, JSON.stringify(db)); updateSlotsPill(); }
+    function countSlots(db){ return Object.values(db.items).filter(r => r.type !== "expr").length; }
+    function upsert(name, item){
+      const db = loadAll();
+      const exists = !!db.items[name];
+      if (!exists && item.type !== "expr") {
+        const used = countSlots(db);
+        if (used >= db.meta.slots) { alert(`無料/現在のプランでは変数を ${db.meta.slots} 個まで保存できます。`); return false; }
+      }
+      db.items[name] = { ...item, updatedAt: Date.now() };
+      saveAll(db); return true;
+    }
+    function del(name){ const db = loadAll(); delete db.items[name]; saveAll(db); }
+
+    // --- Eval ---
+    const IDENT_RE = /[\p{L}_][\p{L}\p{N}_]*/gu;
+    const FORBIDDEN_CHARS = /[^\p{L}\p{N}_\s+\-*/%().^]/u;
+    function normalizeFW(s){
+      return String(s)
+        .replace(/（/g,"(").replace(/）/g,")")
+        .replace(/＝/g,"=")
+        .replace(/＋/g,"+").replace(/－/g,"-")
+        .replace(/[＊×]/g,"*").replace(/[／÷]/g,"/")
+        .replace(/＾/g,"^");
+    }
+    function parensBalanced(s){ let d=0; for (const ch of s){ if(ch==="(") d++; else if(ch===")"){ d--; if(d<0) return false; } } return d===0; }
+    function addImplicitMul(e){
+      e = e.replace(/(\d|\))\s*\(/g,'$1*(');
+      e = e.replace(/\)\s*([\p{L}_]|\d)/gu,')*$1');
+      e = e.replace(/(\d)\s*([\p{L}_])/gu,'$1*$2');
+      e = e.replace(/([\p{L}_][\p{L}\p{N}_]*)\s*(\d)/gu,'$1*$2');
+      e = e.replace(/([\p{L}_][\p{L}\p{N}_]*)\s*\(/gu,'$1*(');
+      return e;
+    }
+    function sanitizeExpr(expr){
+      if (!expr || typeof expr !== "string") throw new Error("式を入力してください。");
+      let e = normalizeFW(expr).replace(/\^/g,"**");
+      if (!parensBalanced(e)) throw new Error("括弧が不一致です。");
+      if (FORBIDDEN_CHARS.test(e)) throw new Error("使用できない文字が含まれています。");
+      e = addImplicitMul(e);
+      return e;
+    }
+    function idsIn(expr){ return Array.from(new Set((expr.match(IDENT_RE)||[]).filter(w=>!/^(true|false)$/u.test(w)))); }
+    function scopeNumeric(){
+      const s = {}; const db = loadAll();
+      for (const [k,v] of Object.entries(db.items)) if (v.type==="number") s[k] = Number(v.value);
+      return s;
+    }
+    function evalExpr(expr){
+      const e = sanitizeExpr(expr);
+      const ids = idsIn(e);
+      const scope = scopeNumeric();
+      const args = []; const vals = [];
+      for (const id of ids){
+        if (!(id in scope)) throw new Error(`未定義の変数: ${id}`);
+        const v = scope[id]; if (typeof v !== "number" || !Number.isFinite(v)) throw new Error(`数値ではない変数: ${id}`);
+        args.push(id); vals.push(v);
+      }
+      const fn = new Function(...args, "return ("+e+");");
+      let res;
+      try { res = fn(...vals); }
+      catch (err) {
+        err.name = err.name || "SyntaxError";
+        throw err;
+      }
+      if (typeof res !== "number" || !Number.isFinite(res)) throw new Error("計算結果が数値ではありません。");
+      return res;
+    }
+
+    // --- UI State ---
+    const els = {
+      expr: document.getElementById("expr"),
+      result: document.getElementById("result"),
+      vars: document.getElementById("vars"),
+      inserter: document.getElementById("inserter"),
+      varInsert: document.getElementById("var-insert"),
+      btnInlineSave: document.getElementById("btn-inline-save"),
+      slotsUsed: document.getElementById("slots-used"),
+      slotsMax: document.getElementById("slots-max"),
+      btnManage: document.getElementById("btn-manage"),
+      manageDialog: document.getElementById("manage-dialog"),
+      manageList: document.getElementById("manage-list"),
+      manageClose: document.getElementById("manage-close"),
+      varDialog: document.getElementById("var-dialog"),
+      varName: document.getElementById("var-name"),
+      varValue: document.getElementById("var-value"),
+      varCancel: document.getElementById("var-cancel"),
+      varSave: document.getElementById("var-save"),
+      btnExport: document.getElementById("btn-export"),
+      fileImport: document.getElementById("file-import"),
+      errorDialog: document.getElementById("error-dialog"),
+      errorMsg: document.getElementById("error-msg"),
+      errorHints: document.getElementById("error-hints"),
+      errorOk: document.getElementById("error-ok"),
+      confirmDialog: document.getElementById("confirm-dialog"),
+      confirmTitle: document.getElementById("confirm-title"),
+      confirmMsg: document.getElementById("confirm-message"),
+      confirmCancel: document.getElementById("confirm-cancel"),
+      confirmOk: document.getElementById("confirm-ok"),
+    };
+
+    function updateSlotsPill(){
+      const db = loadAll();
+      els.slotsMax.textContent = db.meta.slots;
+      els.slotsUsed.textContent = countSlots(db);
+    }
+
+    // Expression builder (tap-only)
+    function currentExpr(){ return els.expr.dataset.raw || ""; }
+    function setExpr(s){
+      els.expr.dataset.raw = s;
+      els.expr.textContent = s || "0";
+      els.expr.classList.toggle("muted", !s);
+    }
+    function insertToken(tok){
+      setExpr(currentExpr() + tok);
+    }
+
+    // 置き換え版: 変数名は丸ごと、それ以外は1文字ずつ削除
+    function deleteLastToken(){
+      let s = currentExpr();
+      if (!s) return;
+
+      // 末尾が識別子（日本語名含む）なら、その語を一括削除
+      const idMatch = s.match(/([\p{L}_][\p{L}\p{N}_]*)$/u);
+      if (idMatch){
+        setExpr(s.slice(0, s.length - idMatch[1].length));
+        return;
+      }
+
+      // それ以外は1文字だけ削除（サロゲートペア対応）
+      const arr = Array.from(s);
+      arr.pop();
+      setExpr(arr.join(""));
+    }
+
+
+    function clearAll(){
+      setExpr("");
+      els.result.textContent = "—";
+    }
+
+    // Error modal
+    function showCalcError(err){
+      const raw = String(err && (err.message || err));
+      els.errorMsg.textContent = raw;
+      const hints = [];
+      if (/括弧が不一致/.test(raw)) hints.push("かっこは（ と ）のペアになっていますか？");
+      if (/Unexpected token/.test(raw) || (err && err.name === "SyntaxError")) {
+        hints.push("記号は正しい位置にありますか？（演算子の連続や先頭/末尾に記号が来ていませんか？）");
+      }
+      if (/未定義の変数/.test(raw)) hints.push("その名前の変数は保存されていますか？（数値として登録されていますか？）");
+      if (/数値ではない変数/.test(raw)) hints.push("number型の変数だけが使えます。値を確認してください。");
+      if (/使用できない文字/.test(raw)) hints.push("使える記号は +, -, *, /, %, ** と () のみです。");
+      if (/数値ではありません/.test(raw)) hints.push("0で割っていませんか？または無効な計算になっていませんか？");
+      if (!hints.length) hints.push("全角と半角が混ざっていないか、不要な記号が入っていないか確認してください。");
+      els.errorHints.innerHTML = hints.map(h => `<li>${h}</li>`).join("");
+      els.errorDialog.showModal();
+    }
+    els.errorOk.addEventListener("click", () => els.errorDialog.close());
+
+    // Confirm modal
+    function confirmDialog(title, message){
+      return new Promise(resolve => {
+        els.confirmTitle.textContent = title;
+        els.confirmMsg.textContent = message;
+        els.confirmDialog.showModal();
+        function cleanup(){
+          els.confirmCancel.removeEventListener("click", onCancel);
+          els.confirmOk.removeEventListener("click", onOk);
+          els.confirmDialog.close();
+        }
+        function onCancel(){ cleanup(); resolve(false); }
+        function onOk(){ cleanup(); resolve(true); }
+        els.confirmCancel.addEventListener("click", onCancel);
+        els.confirmOk.addEventListener("click", onOk);
+      });
+    }
+
+    // Calculator
+    function doCalc(){
+      try {
+        const val = evalExpr(currentExpr());
+        els.result.textContent = String(val);
+      } catch (e) {
+        showCalcError(e);
+      }
+    }
+
+    // Inline save from inserter PLUS
+    function saveFromInlinePlus(){
+      const name = (els.varInsert.value || "").trim();
+      if (!name) { showCalcError(new Error("変数名を入力してください。")); return; }
+      if (!/^[\p{L}_][\p{L}\p{N}_]*$/u.test(name)) {
+        showCalcError(new Error("変数名が不正です。日本語を含む文字で始め、以降は文字・数字・_ のみ。"));
+        return;
+      }
+      try {
+        const value = evalExpr(currentExpr() || "0");
+        const ok = upsert(name, { type: "number", value });
+        if (ok) {
+          els.varInsert.value = "";
+          renderVarChips(); renderManageList(); updateSlotsPill(); clearAll();
+        }
+      } catch (e) { showCalcError(e); }
+    }
+    els.btnInlineSave.addEventListener("click", saveFromInlinePlus);
+
+    // Keypad taps - '+' is always arithmetic
+    document.querySelectorAll(".key").forEach(btn => {
+      btn.addEventListener("click", async () => {
+        const k = btn.dataset.k;
+        if (k === "AC") return clearAll();
+        if (k === "DEL") return deleteLastToken();
+        if (k === "=") return doCalc();
+        insertToken(k);
+      });
+    });
+
+    // IMPORTANT CHANGE: No more auto-insert of the typed variable name on outside taps.
+    // Only blur the input (hide keyboard), keep the text for later saving.
+    document.addEventListener("pointerdown", (ev) => {
+      const t = ev.target;
+      const inside = t === els.inserter || els.inserter.contains(t);
+      if (!inside) els.varInsert.blur();
+    }, true);
+
+    // Variable chips with delete buttons
+    function renderVarChips(){
+      const db = loadAll();
+      document.querySelectorAll("#vars .chip").forEach(n => n.remove());
+      const entries = Object.entries(db.items).map(([name, item]) => ({ name, ...item }))
+        .filter(r => r.type === "number")
+        .sort((a,b) => a.name.localeCompare(b.name, "ja"));
+      for (const r of entries){
+        const wrap = document.createElement("div");
+        wrap.className = "chip";
+        wrap.title = "タップで式に挿入";
+        const label = document.createElement("span");
+        label.innerHTML = `${escapeHtml(r.name)}<small>${String(r.value)}</small>`;
+        label.addEventListener("click", () => insertToken(r.name));
+        const delBtn = document.createElement("button");
+        delBtn.className = "del";
+        delBtn.textContent = "×";
+        delBtn.title = "削除";
+        delBtn.addEventListener("click", async (e) => {
+          e.stopPropagation();
+          const ok = await confirmDialog("削除の確認", `「${r.name}」を削除しますか？`);
+          if (!ok) return;
+          del(r.name); renderVarChips(); renderManageList(); updateSlotsPill();
+        });
+        wrap.appendChild(label);
+        wrap.appendChild(delBtn);
+        document.getElementById("vars").appendChild(wrap);
+      }
+    }
+    function escapeHtml(s){ return String(s).replace(/[&<>"']/g, m => ({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[m])); }
+
+    // Manage modal (edit existing)
+    function openVarDialog(name=null){
+      if (name){
+        const db = loadAll(); const it = db.items[name];
+        els.varName.value = name;
+        els.varValue.value = (it.type === "number") ? String(it.value) : String(it.value || "");
+      } else {
+        els.varName.value = "";
+        els.varValue.value = "";
+      }
+      document.getElementById("var-dialog").showModal();
+      setTimeout(()=> els.varName.focus(), 50);
+    }
+    function sanitizeNameStrict(s){
+      const t = (s||"").trim();
+      if (!t) throw new Error("変数名を入力してください。");
+      const ok = /^[\p{L}_][\p{L}\p{N}_]*$/u.test(t);
+      if (!ok) throw new Error("変数名は日本語を含む文字（先頭は文字/_）、以降は文字・数字・_ のみを使用できます。");
+      return t;
+    }
+    document.getElementById("var-cancel").addEventListener("click", () => document.getElementById("var-dialog").close());
+    document.getElementById("var-save").addEventListener("click", () => {
+      try {
+        const name = sanitizeNameStrict(els.varName.value);
+        const expr = els.varValue.value.trim();
+        if (!expr) throw new Error("値（式）を入力してください。");
+        const value = evalExpr(expr);
+        const ok = upsert(name, { type: "number", value });
+        if (ok){
+          document.getElementById("var-dialog").close();
+          renderVarChips(); renderManageList(); updateSlotsPill();
+          alert(`保存しました: ${name} = ${value}`);
+        }
+      } catch (e) { showCalcError(e); }
+    });
+
+    // Manage
+    document.getElementById("btn-manage").addEventListener("click", () => { renderManageList(); document.getElementById("manage-dialog").showModal(); });
+    document.getElementById("manage-close").addEventListener("click", () => document.getElementById("manage-dialog").close());
+    function renderManageList(){
+      const db = loadAll();
+      const entries = Object.entries(db.items).map(([name, item]) => ({ name, ...item }))
+        .sort((a,b)=> (b.updatedAt||0)-(a.updatedAt||0));
+      document.getElementById("manage-list").innerHTML = "";
+      if (!entries.length){ document.getElementById("manage-list").textContent = "まだありません。『＋変数』左の＋で保存できます。"; return; }
+      for (const r of entries){
+        const row = document.createElement("div");
+        row.style.padding = "8px 0";
+        row.style.borderBottom = "1px solid var(--border)";
+        row.innerHTML = `<div style="display:flex; justify-content:space-between; align-items:center; gap:8px">
+            <div><b>${escapeHtml(r.name)}</b> <span class="muted">(number)</span><br>
+            <span class="muted" style="font-size:12px">${new Date(r.updatedAt||Date.now()).toLocaleString()}</span></div>
+            <div style="display:flex; gap:8px">
+              <button class="btn sm" data-edit="${escapeHtml(r.name)}">編集</button>
+              <button class="btn sm" data-addtoexpr="${escapeHtml(r.name)}">式へ</button>
+              <button class="btn sm" data-copy="${escapeHtml(r.name)}">コピー</button>
+              <button class="btn sm" data-del="${escapeHtml(r.name)}" style="color:#b91c1c;border-color:#fecaca">削除</button>
+            </div></div>`;
+        document.getElementById("manage-list").appendChild(row);
+      }
+      document.querySelectorAll("[data-edit]").forEach(b => b.addEventListener("click", () => openVarDialog(b.dataset.edit)));
+      document.querySelectorAll("[data-addtoexpr]").forEach(b => b.addEventListener("click", () => insertToken(b.dataset.addtoexpr)));
+      document.querySelectorAll("[data-copy]").forEach(b => b.addEventListener("click", async () => {
+        const db = loadAll(); const v = db.items[b.dataset.copy];
+        try { await navigator.clipboard.writeText(String(v && v.value)); b.textContent = "コピー済"; setTimeout(()=> b.textContent = "コピー", 1000); } catch {}
+      }));
+      document.querySelectorAll("[data-del]").forEach(b => b.addEventListener("click", async () => {
+        const name = b.dataset.del;
+        const ok = await confirmDialog("削除の確認", `「${name}」を削除しますか？`);
+        if (!ok) return;
+        del(name); renderVarChips(); renderManageList(); updateSlotsPill();
+      }));
+    }
+
+    // Export/Import
+    document.getElementById("btn-export").addEventListener("click", () => {
+      const db = loadAll();
+      const blob = new Blob([JSON.stringify(db, null, 2)], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      const y = new Date().toISOString().slice(0,19).replace(/[T:]/g,"-");
+      a.href = url; a.download = `varkeep-v10-backup-${y}.json`; a.click(); URL.revokeObjectURL(url);
+    });
+    document.getElementById("file-import").addEventListener("change", async () => {
+      const file = document.getElementById("file-import").files[0]; if (!file) return;
+      try {
+        const text = await file.text();
+        const importDb = JSON.parse(text);
+        if (!importDb || typeof importDb !== "object" || !importDb.items) throw new Error("不正なファイルです。");
+        const db = loadAll(); for (const [k, v] of Object.entries(importDb.items)) db.items[k] = { ...v, updatedAt: Date.now() };
+        saveAll(db); renderVarChips(); renderManageList(); updateSlotsPill();
+        alert("読み込み完了");
+      } catch (e) { showCalcError(e); }
+      finally { document.getElementById("file-import").value = ""; }
+    });
+
+    // Init
+    setExpr("");
+    renderVarChips();
+    updateSlotsPill();
+
+    if ("serviceWorker" in navigator) window.addEventListener("load", () => navigator.serviceWorker.register("./sw.js").catch(()=>{}));
+  </script>
+</body>
+</html>
