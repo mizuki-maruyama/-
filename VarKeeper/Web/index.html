@@ -1,0 +1,483 @@
+<html lang="ja">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>VarKeeper — 変数電卓</title>
+  <meta name="theme-color" content="#ffffff">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="apple-touch-icon" href="icon-192.png">
+  <style>
+    :root {
+      --bg: #f6f7fb;
+      --panel: #fff;
+      --ink: #111;
+      --ink-weak: #6b7280;
+      --border: #e5e7eb;
+      --accent: #2563eb;
+      --accent-ink: #fff;
+      --warn: #ef4444;
+      --radius: 16px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      margin: 0;
+      padding: 0;
+      background: var(--bg);
+      color: var(--ink);
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Hiragino Sans", "Noto Sans CJK JP", "Noto Sans JP", "Yu Gothic UI", "Meiryo", sans-serif;
+    }
+
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      background: var(--panel);
+      border-bottom: 1px solid var(--border);
+      padding: 12px 14px;
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    header h1 {
+      font-size: 18px;
+      margin: 0;
+      font-weight: 800;
+      letter-spacing: .2px;
+    }
+
+    .h-actions {
+      display: flex;
+      gap: 6px;
+      align-items: center;
+    }
+
+    .btn {
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      padding: 10px 12px;
+      background: #fff;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .btn.sm {
+      padding: 8px 10px;
+      font-size: 13px;
+    }
+
+    .btn.primary {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: var(--accent-ink);
+    }
+
+    main {
+      max-width: 520px;
+      margin: 0 auto;
+      padding: 12px 14px 120px;
+    }
+
+    .display {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 16px;
+      display: grid;
+      gap: 10px;
+    }
+
+    .expr {
+      font-size: 22px;
+      min-height: 34px;
+      line-height: 1.3;
+      word-break: break-all;
+    }
+
+    .result {
+      font-size: 28px;
+      font-weight: 800;
+      text-align: right;
+    }
+
+    .muted {
+      color: var(--ink-weak);
+    }
+
+    .vars {
+      margin-top: 12px;
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 8px;
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      align-items: center;
+    }
+
+    .inserter {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 10px;
+      border-radius: 999px;
+      border: 1px dashed #c7d2fe;
+      background: #eef2ff;
+      color: #1d4ed8;
+      flex: 0 0 auto;
+    }
+
+    .inserter .save {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 30px;
+      height: 30px;
+      border-radius: 999px;
+      border: 1px solid #93c5fd;
+      background: #dbeafe;
+      color: #1e40af;
+      font-weight: 900;
+      cursor: pointer;
+    }
+
+    .inserter .save:active {
+      transform: translateY(1px);
+    }
+
+    .inserter .label {
+      font-weight: 800;
+      margin-left: 2px;
+    }
+
+    .inserter .field {
+      border: 0;
+      outline: none;
+      background: transparent;
+      font-size: 16px;
+      font-weight: 700;
+      color: #1d4ed8;
+    }
+
+    #var-insert {
+      min-width: 140px;
+      max-width: 220px;
+    }
+
+    #var-value-input {
+      width: 110px;
+      text-align: right;
+    }
+
+    .chip {
+      flex: 0 0 auto;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 10px;
+      background: #f1f5f9;
+      color: #0f172a;
+      border: 1px solid #e2e8f0;
+      border-radius: 999px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .chip small {
+      color: #64748b;
+      font-weight: 600;
+      margin-left: 4px;
+    }
+
+    .chip .del {
+      margin-left: 6px;
+      border: 0;
+      background: #fee2e2;
+      color: #b91c1c;
+      border-radius: 999px;
+      padding: 0 8px;
+      font-weight: 800;
+      cursor: pointer;
+    }
+
+    .grid {
+      margin-top: 12px;
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+    }
+
+    .key {
+      padding: 16px 10px;
+      font-size: 20px;
+      text-align: center;
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      font-weight: 800;
+    }
+
+    .key.op {
+      color: #1d4ed8;
+    }
+
+    .key.equals {
+      background: #1d4ed8;
+      color: #fff;
+    }
+
+    .key.ac {
+      color: #ef4444;
+    }
+
+    .toolbar {
+      margin-top: 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 10px;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      background: #f8fafc;
+      font-size: 12px;
+    }
+
+    dialog {
+      border: none;
+      border-radius: 16px;
+      padding: 0;
+      width: min(520px, 94vw);
+      box-shadow: 0 24px 70px rgba(0, 0, 0, .18);
+    }
+
+    .modal {
+      padding: 16px;
+    }
+
+    .modal header {
+      padding-bottom: 6px;
+    }
+
+    .modal footer {
+      display: flex;
+      justify-content: end;
+      gap: 8px;
+      padding-top: 12px;
+    }
+
+    label {
+      font-size: 12px;
+      color: var(--ink-weak);
+      display: block;
+      margin-bottom: 6px;
+    }
+
+    input[type="text"] {
+      width: 100%;
+      padding: 12px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      font-size: 16px;
+    }
+
+    .row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .danger {
+      color: #b91c1c;
+    }
+
+    .hint-list {
+      margin: 8px 0 0 1.2em;
+      padding: 0;
+    }
+
+    .hint-list li {
+      margin: 4px 0;
+    }
+  </style>
+</head>
+
+<body>
+  <header>
+    <h1>VarKeeper</h1>
+    <div class="h-actions">
+      <span class="pill">スロット <b id="slots-used">0</b>/<b id="slots-max">10</b></span>
+      <button class="btn sm" id="btn-manage">管理</button>
+      <button class="btn sm" id="btn-export">書き出し</button>
+      <label class="btn sm" for="file-import">読み込み</label>
+      <input id="file-import" type="file" accept="application/json" style="display:none">
+    </div>
+  </header>
+
+  <main id="main">
+    <section class="display">
+      <div class="expr muted" id="expr">0</div>
+      <div class="result" id="result">—</div>
+    </section>
+
+    <section class="vars" id="vars">
+      <div class="inserter" id="inserter">
+        <button id="btn-inline-save" class="save" title="今の式または右の値で保存">＋</button>
+        <span class="label">変数</span>
+        <input id="var-insert" class="field" type="text" placeholder="変数名" inputmode="text" autocomplete="off">
+        <input id="var-value-input" class="field" type="text" placeholder="数値" inputmode="decimal" autocomplete="off">
+      </div>
+      <!-- chips will follow -->
+    </section>
+
+    <section class="grid">
+      <button class="key ac" data-k="AC">AC</button>
+      <button class="key" data-k="(">(</button>
+      <button class="key" data-k=")">)</button>
+      <button class="key" data-k="DEL">⌫</button>
+
+      <button class="key" data-k="7">7</button>
+      <button class="key" data-k="8">8</button>
+      <button class="key" data-k="9">9</button>
+      <button class="key op" data-k="÷">÷</button>
+
+      <button class="key" data-k="4">4</button>
+      <button class="key" data-k="5">5</button>
+      <button class="key" data-k="6">6</button>
+      <button class="key op" data-k="×">×</button>
+
+      <button class="key" data-k="1">1</button>
+      <button class="key" data-k="2">2</button>
+      <button class="key" data-k="3">3</button>
+      <button class="key op" data-k="-">−</button>
+
+      <button class="key" data-k="0">0</button>
+      <button class="key" data-k=".">.</button>
+      <button class="key equals" data-k="=">＝</button>
+      <button class="key op" data-k="+">＋</button>
+    </section>
+
+    <div class="toolbar">
+      <span class="muted" style="font-size:12px">※ 括弧が揃っていないと計算しません。^ は **として扱います。</span>
+    </div>
+  </main>
+
+  <!-- Variable Modal (manage existing) -->
+  <dialog id="var-dialog">
+    <div class="modal">
+      <header>
+        <h3 style="margin:0">変数の編集</h3>
+      </header>
+      <div class="row">
+        <div>
+          <label>変数名</label>
+          <input id="var-name" type="text" placeholder="例: 光熱費">
+        </div>
+        <div>
+          <label>値（式OK）</label>
+          <input id="var-value" type="text" placeholder="例: 1000*2+5(2+30)">
+        </div>
+      </div>
+      <footer>
+        <button class="btn" id="var-cancel">キャンセル</button>
+        <button class="btn primary" id="var-save">保存</button>
+      </footer>
+    </div>
+  </dialog>
+
+  <!-- Manage Modal -->
+  <dialog id="manage-dialog">
+    <div class="modal">
+      <header>
+        <h3 style="margin:0">変数の管理</h3>
+      </header>
+      <div id="manage-list" class="muted" style="max-height:50vh; overflow:auto;"></div>
+      <footer>
+        <button class="btn" id="manage-close">閉じる</button>
+      </footer>
+    </div>
+  </dialog>
+
+  <!-- Error Modal -->
+  <dialog id="error-dialog">
+    <div class="modal">
+      <header>
+        <h3 style="margin:0" class="danger">計算できません！</h3>
+      </header>
+      <div id="error-msg" class="muted" style="margin-top:6px"></div>
+      <ul id="error-hints" class="hint-list"></ul>
+      <footer>
+        <button class="btn primary" id="error-ok">OK</button>
+      </footer>
+    </div>
+  </dialog>
+
+  <!-- Confirm Modal -->
+  <dialog id="confirm-dialog">
+    <div class="modal">
+      <header>
+        <h3 id="confirm-title" style="margin:0">確認</h3>
+      </header>
+      <div id="confirm-message" class="muted" style="margin-top:6px"></div>
+      <footer>
+        <button class="btn" id="confirm-cancel">キャンセル</button>
+        <button class="btn primary" id="confirm-ok">OK</button>
+      </footer>
+    </div>
+  </dialog>
+
+  <script>
+    // --- Storage ---
+    const STORAGE_KEY = "varkeep:data:v11";
+    const DEFAULT_SLOTS = 10;
+    function loadAll() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (!raw) return { items: {}, meta: { createdAt: Date.now(), updatedAt: Date.now(), slots: DEFAULT_SLOTS } };
+        const db = JSON.parse(raw);
+        if (!db.meta) db.meta = { createdAt: Date.now(), updatedAt: Date.now(), slots: DEFAULT_SLOTS };
+        if (typeof db.meta.slots !== "number") db.meta.slots = DEFAULT_SLOTS;
+        return db;
+      } catch (e) {
+        return { items: {}, meta: { createdAt: Date.now(), updatedAt: Date.now(), slots: DEFAULT_SLOTS } };
+      }
+    }
+    function saveAll(db) { db.meta.updatedAt = Date.now(); localStorage.setItem(STORAGE_KEY, JSON.stringify(db)); updateSlotsPill(); }
+    function countSlots(db) { return Object.values(db.items).filter(r => r.type !== "expr").length; }
+    function upsert(name, item) {
+      const db = loadAll();
+      const exists = !!db.items[name];
+      if (!exists && item.type !== "expr") {
+        const used = countSlots(db);
+        if (used >= db.meta.slots) { alert(`無料/現在のプランでは変数を ${db.meta.slots} 個まで保存できます。`); return false; }
+      }
+      db.items[name] = { ...item, updatedAt: Date.now() };
+      saveAll(db); return true;
+    }
+    function del(name) { const db = loadAll(); delete db.items[name]; saveAll(db); }
+
+    // --- Eval ---
+    const IDENT_RE = /[\p{L}_][\p{L}\p{N}_]*/gu;
+    const FORBIDDEN_CHARS = /[^\p{L}\p{N}_\s+\-*/%().^]/u;
+    function normalizeFW(s) {
+      return String(s)
+        .replace(/（/g, "(").replace(/）/g, ")")
+        .replace(/＝/g, "=")
+        .replace(/＋/g, "+").replace(/－/g, "-").replace(/−/g, "-")
+        .replace(/[＊×]/g, "*")
