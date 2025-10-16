@@ -14,6 +14,8 @@
 		7E2DABC42EA12A9D0013E2B9 /* VarKeeper__with_addTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7E2DABC32EA12A9D0013E2B9 /* VarKeeper__with_addTests.swift */; };
 		7E2DABCE2EA12A9D0013E2B9 /* VarKeeper__with_addUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7E2DABCD2EA12A9D0013E2B9 /* VarKeeper__with_addUITests.swift */; };
 		7E2DABD02EA12A9D0013E2B9 /* VarKeeper__with_addUITestsLaunchTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7E2DABCF2EA12A9D0013E2B9 /* VarKeeper__with_addUITestsLaunchTests.swift */; };
+		7E2DABDF2EA136600013E2B9 /* Ads.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7E2DABDE2EA136600013E2B9 /* Ads.swift */; };
+		7E2DABE22EA138200013E2B9 /* GoogleMobileAds in Frameworks */ = {isa = PBXBuildFile; productRef = 7E2DABE12EA138200013E2B9 /* GoogleMobileAds */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -44,6 +46,8 @@
 		7E2DABC92EA12A9D0013E2B9 /* VarKeeper _with＿addUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "VarKeeper _with＿addUITests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
 		7E2DABCD2EA12A9D0013E2B9 /* VarKeeper__with_addUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VarKeeper__with_addUITests.swift; sourceTree = "<group>"; };
 		7E2DABCF2EA12A9D0013E2B9 /* VarKeeper__with_addUITestsLaunchTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VarKeeper__with_addUITestsLaunchTests.swift; sourceTree = "<group>"; };
+		7E2DABDD2EA133FF0013E2B9 /* VarKeeper--with-add-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = "VarKeeper--with-add-Info.plist"; sourceTree = SOURCE_ROOT; };
+		7E2DABDE2EA136600013E2B9 /* Ads.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Ads.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -51,6 +55,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				7E2DABE22EA138200013E2B9 /* GoogleMobileAds in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -78,6 +83,7 @@
 				7E2DABC22EA12A9D0013E2B9 /* VarKeeper _with＿addTests */,
 				7E2DABCC2EA12A9D0013E2B9 /* VarKeeper _with＿addUITests */,
 				7E2DABB02EA12A9C0013E2B9 /* Products */,
+				7E2DABE02EA138200013E2B9 /* Frameworks */,
 			);
 			sourceTree = "<group>";
 		};
@@ -94,8 +100,10 @@
 		7E2DABB12EA12A9C0013E2B9 /* VarKeeper _with＿add */ = {
 			isa = PBXGroup;
 			children = (
+				7E2DABDD2EA133FF0013E2B9 /* VarKeeper--with-add-Info.plist */,
 				7E2DABB22EA12A9C0013E2B9 /* VarKeeper__with_addApp.swift */,
 				7E2DABB42EA12A9C0013E2B9 /* ContentView.swift */,
+				7E2DABDE2EA136600013E2B9 /* Ads.swift */,
 				7E2DABB62EA12A9D0013E2B9 /* Assets.xcassets */,
 				7E2DABB82EA12A9D0013E2B9 /* Preview Content */,
 			);
@@ -127,6 +135,13 @@
 			path = "VarKeeper _with＿addUITests";
 			sourceTree = "<group>";
 		};
+		7E2DABE02EA138200013E2B9 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -143,6 +158,9 @@
 			dependencies = (
 			);
 			name = "VarKeeper _with＿add";
+			packageProductDependencies = (
+				7E2DABE12EA138200013E2B9 /* GoogleMobileAds */,
+			);
 			productName = "VarKeeper _with＿add";
 			productReference = 7E2DABAF2EA12A9C0013E2B9 /* VarKeeper _with＿add.app */;
 			productType = "com.apple.product-type.application";
@@ -215,6 +233,9 @@
 				Base,
 			);
 			mainGroup = 7E2DABA62EA12A9C0013E2B9;
+			packageReferences = (
+				7E2DABDC2EA131990013E2B9 /* XCRemoteSwiftPackageReference "swift-package-manager-google-mobile-ads" */,
+			);
 			productRefGroup = 7E2DABB02EA12A9C0013E2B9 /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
@@ -257,6 +278,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				7E2DABDF2EA136600013E2B9 /* Ads.swift in Sources */,
 				7E2DABB52EA12A9C0013E2B9 /* ContentView.swift in Sources */,
 				7E2DABB32EA12A9C0013E2B9 /* VarKeeper__with_addApp.swift in Sources */,
 			);
@@ -425,6 +447,8 @@
 				DEVELOPMENT_TEAM = 3TKA46A686;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "VarKeeper--with-add-Info.plist";
+				INFOPLIST_KEY_NSUserTrackingUsageDescription = "より適切な広告を表示するためにトラッキングの許可をお願いします。";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -454,6 +478,8 @@
 				DEVELOPMENT_TEAM = 3TKA46A686;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "VarKeeper--with-add-Info.plist";
+				INFOPLIST_KEY_NSUserTrackingUsageDescription = "より適切な広告を表示するためにトラッキングの許可をお願いします。";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -588,6 +614,25 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		7E2DABDC2EA131990013E2B9 /* XCRemoteSwiftPackageReference "swift-package-manager-google-mobile-ads" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/googleads/swift-package-manager-google-mobile-ads";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 12.12.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		7E2DABE12EA138200013E2B9 /* GoogleMobileAds */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 7E2DABDC2EA131990013E2B9 /* XCRemoteSwiftPackageReference "swift-package-manager-google-mobile-ads" */;
+			productName = GoogleMobileAds;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 7E2DABA72EA12A9C0013E2B9 /* Project object */;
 }
