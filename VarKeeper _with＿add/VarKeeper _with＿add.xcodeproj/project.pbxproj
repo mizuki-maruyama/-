@@ -16,6 +16,7 @@
 		7E2DABD02EA12A9D0013E2B9 /* VarKeeper__with_addUITestsLaunchTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7E2DABCF2EA12A9D0013E2B9 /* VarKeeper__with_addUITestsLaunchTests.swift */; };
 		7E2DABDF2EA136600013E2B9 /* Ads.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7E2DABDE2EA136600013E2B9 /* Ads.swift */; };
 		7E2DABE22EA138200013E2B9 /* GoogleMobileAds in Frameworks */ = {isa = PBXBuildFile; productRef = 7E2DABE12EA138200013E2B9 /* GoogleMobileAds */; };
+		7EAE6F172EA3E4EE00F625D3 /* IAP.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7EAE6F162EA3E4E800F625D3 /* IAP.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -48,6 +49,9 @@
 		7E2DABCF2EA12A9D0013E2B9 /* VarKeeper__with_addUITestsLaunchTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VarKeeper__with_addUITestsLaunchTests.swift; sourceTree = "<group>"; };
 		7E2DABDD2EA133FF0013E2B9 /* VarKeeper--with-add-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = "VarKeeper--with-add-Info.plist"; sourceTree = SOURCE_ROOT; };
 		7E2DABDE2EA136600013E2B9 /* Ads.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Ads.swift; sourceTree = "<group>"; };
+		7E4506752EA3F3F60079969E /* Untitled.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Untitled.swift; sourceTree = "<group>"; };
+		7EAE6F162EA3E4E800F625D3 /* IAP.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IAP.swift; sourceTree = "<group>"; };
+		7ED775B72EA3F6BE00CD37F9 /* Storekit3.storekit */ = {isa = PBXFileReference; lastKnownFileType = text; path = Storekit3.storekit; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -100,12 +104,15 @@
 		7E2DABB12EA12A9C0013E2B9 /* VarKeeper _with＿add */ = {
 			isa = PBXGroup;
 			children = (
+				7EAE6F162EA3E4E800F625D3 /* IAP.swift */,
+				7E4506752EA3F3F60079969E /* Untitled.swift */,
 				7E2DABDD2EA133FF0013E2B9 /* VarKeeper--with-add-Info.plist */,
 				7E2DABB22EA12A9C0013E2B9 /* VarKeeper__with_addApp.swift */,
 				7E2DABB42EA12A9C0013E2B9 /* ContentView.swift */,
 				7E2DABDE2EA136600013E2B9 /* Ads.swift */,
 				7E2DABB62EA12A9D0013E2B9 /* Assets.xcassets */,
 				7E2DABB82EA12A9D0013E2B9 /* Preview Content */,
+				7ED775B72EA3F6BE00CD37F9 /* Storekit3.storekit */,
 			);
 			path = "VarKeeper _with＿add";
 			sourceTree = "<group>";
@@ -209,7 +216,7 @@
 			attributes = {
 				BuildIndependentTargetsInParallel = 1;
 				LastSwiftUpdateCheck = 1530;
-				LastUpgradeCheck = 1530;
+				LastUpgradeCheck = 1620;
 				TargetAttributes = {
 					7E2DABAE2EA12A9C0013E2B9 = {
 						CreatedOnToolsVersion = 15.3;
@@ -280,6 +287,7 @@
 			files = (
 				7E2DABDF2EA136600013E2B9 /* Ads.swift in Sources */,
 				7E2DABB52EA12A9C0013E2B9 /* ContentView.swift in Sources */,
+				7EAE6F172EA3E4EE00F625D3 /* IAP.swift in Sources */,
 				7E2DABB32EA12A9C0013E2B9 /* VarKeeper__with_addApp.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -501,7 +509,6 @@
 		7E2DABD72EA12A9D0013E2B9 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
@@ -521,7 +528,6 @@
 		7E2DABD82EA12A9D0013E2B9 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
@@ -541,7 +547,6 @@
 		7E2DABDA2EA12A9D0013E2B9 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 3TKA46A686;
@@ -559,7 +564,6 @@
 		7E2DABDB2EA12A9D0013E2B9 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 3TKA46A686;

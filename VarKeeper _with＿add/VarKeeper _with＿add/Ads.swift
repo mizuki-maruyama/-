@@ -26,6 +26,7 @@ final class Ads: ObservableObject {
 // v12: GADBannerView → BannerView、GADAdSizeBanner → AdSizeBanner、GADRequest → Request
 struct BannerAdView: UIViewRepresentable {
     private let unitID = "ca-app-pub-3940256099942544/2934735716" // テスト用ユニットID
+    //private let unitID = "ca-app-pub-4727969122010952/2314119445" // 本番用ユニットID
 
     func makeUIView(context: Context) -> BannerView {
         let v = BannerView(adSize: AdSizeBanner)

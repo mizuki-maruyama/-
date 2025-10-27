@@ -289,11 +289,16 @@ struct VKEngine {
 // ======================= UI 補助 =======================
 struct WideKeyStyle: ButtonStyle {
     var height: CGFloat
+    var normalColor: Color = Color(white: 0.98)
+    var pressedColor: Color = Color(white: 0.9)
+    var foregroundColor: Color = .primary
+
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
+            .foregroundColor(foregroundColor)
             .frame(maxWidth: .infinity, minHeight: height)
             .padding(.vertical, 0)
-            .background(configuration.isPressed ? Color(white: 0.9) : Color(white: 0.98))
+            .background(configuration.isPressed ? pressedColor : normalColor)
             .overlay(RoundedRectangle(cornerRadius: 8).stroke(Color.gray.opacity(0.3)))
             .contentShape(Rectangle())
     }
@@ -303,8 +308,8 @@ struct PromoBar: View {
     var onTap: () -> Void
     var body: some View {
         HStack(spacing: 8) {
-            Text("Proにするとスロット無制限").font(.footnote).foregroundColor(.secondary)
-            Spacer()
+            // Text("Proにするとスロット無制限").font(.footnote).foregroundColor(.secondary)
+            // Spacer()
             Button("詳しく", action: onTap).font(.footnote)
         }
         .padding(.vertical, 6).padding(.horizontal, 10)
@@ -327,6 +332,9 @@ struct PromoBar: View {
 struct ContentView: View {
     @StateObject private var ads = Ads()
     @StateObject private var store: VKStore = VKStore(safeMode: FORCE_SAFE_MODE)
+    
+    @StateObject private var iap = IAPStore()
+    @State private var showPurchase = false
     
     @State private var expr: String = ""
     @State private var resultText: String = "—"
@@ -358,7 +366,18 @@ struct ContentView: View {
     var body: some View {
         NavigationView {
             VStack(spacing: 0) {
-                PromoBar{showPromoInfo=true}
+                // PromoBar{showPromoInfo=true}
+                // 上部バー：左上に「広告を消す」ボタン
+                HStack(spacing: 8) {
+                    Button("広告を消す") { showPurchase = true }
+                        .buttonStyle(WideKeyStyle(height: 32))
+                        .frame(maxWidth: 120)
+                    Spacer()
+                }
+                .padding(.horizontal, 14)
+                .padding(.vertical, 8)
+                .overlay(Rectangle().frame(height: 1).foregroundColor(Color(white: 0.9)), alignment: .bottom)
+                
                 VStack(alignment: .leading, spacing: 12) {
                     VStack(alignment: .leading) {
                         Text(expr.isEmpty ? "0" : expr)
@@ -380,6 +399,8 @@ struct ContentView: View {
                             .textFieldStyle(RoundedBorderTextFieldStyle())
                         Spacer(minLength: 0)
                     }
+                    // Button("広告を消す") { showPurchase = true }
+                       //  .buttonStyle(WideKeyStyle(height: 36))
                     ScrollView(.horizontal, showsIndicators: false) {
                         HStack {
                             ForEach(sortedNumberEntries(), id: \.name) { (r: (name: String, value: Double)) in
@@ -402,8 +423,8 @@ struct ContentView: View {
                         let rowH: CGFloat = max(48, (geo.size.height - spacing * CGFloat(rows - 1)) / CGFloat(rows))
                         VStack(spacing: spacing) {
                             keypadRow(["AC","(",")","DEL"], h: rowH)
-                            keypadRow(["7","8","9","/"],     h: rowH)
-                            keypadRow(["4","5","6","*"],     h: rowH)
+                            keypadRow(["7","8","9","÷"],     h: rowH)
+                            keypadRow(["4","5","6","×"],     h: rowH)
                             keypadRow(["1","2","3","-"],     h: rowH)
                             keypadRow(["0",".","=","+"],     h: rowH)
                         }
@@ -415,7 +436,11 @@ struct ContentView: View {
                 .padding(.bottom, 8)
                 
              //    AdBannerStub()
-                BannerAdView().frame(height: 50)
+                if iap.adsRemoved {
+                    Color.clear.frame(height: 0)   // 購入済みなら広告を出さない
+                } else {
+                    BannerAdView().frame(height: 50)
+                }
             }
             // 「管理」シート
             .sheet(isPresented: $showManage) { manageSheet }
@@ -432,12 +457,15 @@ struct ContentView: View {
                 Text("スロット無制限や今後の拡張を予定。\n（この画面は控えめ表示です。実装時はStoreKitに差し替え）")
             }
             // 外のチップ列からの削除確認（このままでOK）
-            .confirmationDialog("「\(targetDeleteName)」を削除しますか？",
+            .confirmationDialog("「\(targetDeleteName)」を削除しますか?",
                                 isPresented: $showConfirmDelete,
                                 titleVisibility: .visible) {
                 Button("削除", role: .destructive) { store.delete(name: targetDeleteName) }
                 Button("キャンセル", role: .cancel) {}
             }
+        }
+        .sheet(isPresented: $showPurchase) {
+            PurchaseSheet(store: iap) { showPurchase = false }
         }
         .onAppear { ads.start() }
         .navigationViewStyle(StackNavigationViewStyle())
@@ -450,7 +478,14 @@ struct ContentView: View {
                 Button(action: { handleKey(k) }) {
                     Text(k).font(.title3).frame(maxWidth: .infinity)
                 }
-                .buttonStyle(WideKeyStyle(height: h))
+                .buttonStyle(
+                    k == "="
+                    ? WideKeyStyle(height: h,
+                                   normalColor: .orange,
+                                   pressedColor: Color.orange.opacity(0.85),
+                                   foregroundColor: .white)
+                    : WideKeyStyle(height: h)
+                )
             }
         }
     }
